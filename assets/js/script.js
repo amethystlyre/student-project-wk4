@@ -18,9 +18,12 @@ var winCount = 0;
 var loseCount = 0;
 var resetButton = document.querySelector(".reset-button");
 
+
+//add listeners to buttons
 startButton.addEventListener("click", startGame);
 resetButton.addEventListener("click", resetScore);
 
+//Initialize scores if the game was played previously
 init();
 function init() {
     if (localStorage.hasOwnProperty("winCount")) {
@@ -33,25 +36,27 @@ function init() {
     }
 }
 
+//handles start game click
 function startGame() {
-    guessWord = generateRandomWord(words);
-    placeholder = "_".repeat(guessWord.length);
+    guessWord = generateRandomWord(words); //get a random word from word list
+    placeholder = "_".repeat(guessWord.length); //generate placeholder with "_"s
     //console.log(guessWord);
     //console.log(placeholder);
 
     wordBlank.textContent = placeholder.split("").join(" ");
     document.addEventListener("keydown", keydownAction);
-    timer();
+    startTimer();
 }
 
+//Helper function to generate random word
 function generateRandomWord(words) {
     var randomElement = words[Math.floor(Math.random()*(words.length))]
     //console.log(randomElement);
     return randomElement;
 }
 
-
-function timer() {
+//Count down time function
+function startTimer() {
     timeLeft = 10;
     timeInterval = setInterval(function () {
 
@@ -71,7 +76,7 @@ function timer() {
 
 }
 
-
+//Update and display score records
 function displayResult(wonORLost) {
     if (wonORLost) {
         winCount++;
@@ -83,14 +88,12 @@ function displayResult(wonORLost) {
         loseCount++;
         losses.textContent = loseCount;
         localStorage.setItem("loseCount", loseCount);
-
         return "GAME OVER";
     }
 }
 
-
+//handles reset score button click event
 function resetScore() {
-    //TODO:
     winCount = 0;
     wins.textContent = winCount;
     localStorage.setItem("winCount", winCount);
@@ -99,9 +102,8 @@ function resetScore() {
     localStorage.setItem("loseCount", loseCount);
 }
 
-
+//handles user key entry during game
 function keydownAction(event) {
-    // TODO: Complete keydown function
     var keyPress = event.key;
 
     compareLetters(keyPress);
@@ -109,22 +111,36 @@ function keydownAction(event) {
     return keyPress;
 }
 
+//A function for checking whether the letter key pressed by the user is in the answer
 function compareLetters(keyPress){
+    //create a regex for the key character pressed eg. /s/ig
     var regexKey = new RegExp(keyPress, "ig");
     //console.log(guessWord.search(regexKey));
     //console.log("regex key " + regexKey);
+
+    //get a list of the character (pressed key) found in the guessword
     var matches = [...guessWord.matchAll(regexKey)];
-    var indexes = matches.map(match => match.index);
+    //convert the list of char matches into a list their respective index position in the guess word
+    //eg. if the guess word "variable" contains 2 a's, then var indices is a list of the position 
+    //of the char 'a' in the guess word [1,4]
+    var indices = matches.map(match => match.index);
     //console.log("indexes " + indexes);
 
-    if (Array.isArray(indexes) && indexes.length) {
-        indexes.forEach(element => {
+    //check if the indices list has values in it
+    if (Array.isArray(indices) && indices.length) {
+        indices.forEach(element => {
             //console.log("placeholder element " + placeholder[element]);
             //console.log("guessword element " + guessWord[element])
-            var list = placeholder.split('');
-            list.splice(element, 1, guessWord[element])
-            placeholder = list.join('');
+
+            //Break the placeholder into a list of "_" and then use
+            //splice() method to replace "_" with the correctly guessed char at the position give in the indices list
+            //rejoin the list of characters and _ into the placeholder variable
+            var charList = placeholder.split('');
+            charList.splice(element, 1, guessWord[element])
+            placeholder = charList.join('');
             //console.log(placeholder);
+
+            //update the wordBlank field on screen
             wordBlank.textContent = placeholder.split("").join(" ");
             
         });
@@ -134,6 +150,8 @@ function compareLetters(keyPress){
     }
 }
 
+
+//Check if the user has won
 function checkWin() {
     if (!placeholder.includes("_")) {
         clearInterval(timeInterval);
